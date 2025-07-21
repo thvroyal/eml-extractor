@@ -1,0 +1,32 @@
+# Include the README and license files
+include README.md
+include LICENSE
+
+# Include package data files
+include eml_parser/py.typed
+
+# Include examples
+recursive-include examples *.py *.eml
+
+# Include tests
+recursive-include tests *.py
+
+# Exclude development and build files
+exclude .gitignore
+exclude .github/
+exclude .vscode/
+exclude *.pyc
+exclude __pycache__/
+exclude build/
+exclude dist/
+exclude *.egg-info/
+exclude .pytest_cache/
+exclude .mypy_cache/
+exclude .coverage
+exclude htmlcov/
+
+# Exclude development tools config
+exclude .flake8
+exclude .isort.cfg
+exclude pytest.ini
+exclude tox.ini 
