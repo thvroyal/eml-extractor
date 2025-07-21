@@ -1,5 +1,5 @@
 """
-EML Parser - A Python library for parsing .eml email files
+EML Extractor - A Python library for extracting data from .eml email files
 
 This library provides a clean API for parsing .eml files, extracting email headers,
 body content, attachments, and inline images.

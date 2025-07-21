@@ -1,1 +1,1 @@
-# Tests package for EML Parser 
+# Tests package for EML Extractor 

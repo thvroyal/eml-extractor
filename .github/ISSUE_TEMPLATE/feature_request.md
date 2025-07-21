@@ -25,7 +25,7 @@ Describe the use case where this feature would be helpful. For example:
 If applicable, show how you would like to use this feature:
 
 ```python
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 
 reader = EmlReader(email_content)
 # Your desired API usage here

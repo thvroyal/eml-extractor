@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Comprehensive tests for EML Parser
+Comprehensive tests for EML Extractor
 
-This test suite covers the main functionality of the EML parser library.
+This test suite covers the main functionality of the EML extractor library.
 """
 
 import pytest
@@ -11,11 +11,11 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-# Add the parent directory to the path to import eml_parser
+# Add the parent directory to the path to import eml_extractor
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from eml_parser import EmlReader, MultiPartParser
+from eml_extractor import EmlReader, MultiPartParser
 
 
 class TestMultiPartParser:

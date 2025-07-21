@@ -1,6 +1,6 @@
 # GitHub Workflows Setup Instructions
 
-This document provides step-by-step instructions for setting up automated publishing and testing for your EML Parser library using GitHub Actions.
+This document provides step-by-step instructions for setting up automated publishing and testing for your EML Extractor library using GitHub Actions.
 
 ## Overview
 
@@ -26,7 +26,7 @@ The repository includes three main GitHub Actions workflows:
 1. Log in to [PyPI.org](https://pypi.org)
 2. Go to Account Settings → API tokens
 3. Click "Add API token"
-4. Give it a name (e.g., "GitHub Actions EML Parser")
+4. Give it a name (e.g., "GitHub Actions EML Extractor")
 5. Choose scope: "Entire account" (you can restrict this later after first publish)
 6. Copy the token (starts with `pypi-`)
 
@@ -58,10 +58,10 @@ The repository includes three main GitHub Actions workflows:
 # Initialize git repository
 git init
 git add .
-git commit -m "Initial commit: EML Parser library"
+git commit -m "Initial commit: EML Extractor library"
 
 # Add remote and push
-git remote add origin https://github.com/yourusername/eml-parser.git
+git remote add origin https://github.com/yourusername/eml-extractor.git
 git branch -M main
 git push -u origin main
 ```
@@ -85,7 +85,7 @@ git push -u origin main
 
 ### 4.1 Update Version Number
 First, make sure your version number is correct in:
-- `eml_parser/__init__.py` 
+- `eml_extractor/__init__.py` 
 - `setup.py`
 - `pyproject.toml`
 

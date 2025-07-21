@@ -10,10 +10,10 @@ import os
 import sys
 from datetime import datetime
 
-# Add the parent directory to the path to import eml_parser
+# Add the parent directory to the path to import eml_extractor
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 
 
 def parse_email_file(eml_file_path):

@@ -42,7 +42,7 @@ jobs:
     
     - name: Test import
       run: |
-        python -c "from eml_parser import EmlReader, MultiPartParser; print('Import successful')"
+        python -c "from eml_extractor import EmlReader, MultiPartParser; print('Import successful')"
 
   build:
     name: Build package

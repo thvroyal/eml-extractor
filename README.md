@@ -1,10 +1,10 @@
-# EML Parser
+# EML Extractor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI version](https://badge.fury.io/py/eml-parser.svg)](https://badge.fury.io/py/eml-parser)
+[![PyPI version](https://badge.fury.io/py/eml-extractor.svg)](https://badge.fury.io/py/eml-extractor)
 
-A pure Python library for parsing .eml email files. This library provides a clean and simple API for extracting email headers, body content, attachments, and inline images from .eml files without any external dependencies.
+A pure Python library for extracting data from .eml email files. This library provides a clean and simple API for extracting email headers, body content, attachments, and inline images from .eml files without any external dependencies.
 
 ## Features
 
@@ -22,14 +22,14 @@ A pure Python library for parsing .eml email files. This library provides a clea
 Install the library using pip:
 
 ```bash
-pip install eml-parser
+pip install eml-extractor
 ```
 
 Or install from source:
 
 ```bash
-git clone https://github.com/thvroyal/eml-parser.git
-cd eml-parser
+git clone https://github.com/thvroyal/eml-extractor.git
+cd eml-extractor
 pip install .
 ```
 
@@ -42,7 +42,7 @@ pip install -e ".[dev]"
 ## Quick Start
 
 ```python
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 
 # Read an .eml file
 with open('email.eml', 'rb') as f:
@@ -76,7 +76,7 @@ for attachment in attachments:
 ### Reading Email Files
 
 ```python
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 
 # Method 1: Read from file
 with open('email.eml', 'rb') as f:
@@ -172,7 +172,7 @@ for i, image in enumerate(inline_images):
 ### Advanced Usage
 
 ```python
-from eml_parser import EmlReader, MultiPartParser
+from eml_extractor import EmlReader, MultiPartParser
 
 # Access the underlying MultiPartParser for advanced operations
 reader = EmlReader(email_bytes)
@@ -263,7 +263,7 @@ MultiPartParser(raw_content: Union[bytes, bytearray])
 ### Example 1: Basic Email Information
 
 ```python
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 from datetime import datetime
 
 def print_email_info(eml_file_path):
@@ -289,7 +289,7 @@ print_email_info('sample.eml')
 
 ```python
 import os
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 
 def extract_attachments(eml_file_path, output_dir="attachments"):
     with open(eml_file_path, 'rb') as f:
@@ -326,7 +326,7 @@ extract_attachments('email_with_attachments.eml')
 ### Example 3: Convert Email to HTML File
 
 ```python
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 import os
 
 def email_to_html(eml_file_path, output_html_path, extract_images=True):
@@ -392,7 +392,7 @@ email_to_html('sample.eml', 'output.html')
 The library is designed to handle malformed emails gracefully:
 
 ```python
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 
 try:
     with open('potentially_malformed.eml', 'rb') as f:
@@ -440,7 +440,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-If you encounter any issues or have questions, please file an issue on the [GitHub repository](https://github.com/thvroyal/eml-parser/issues).
+If you encounter any issues or have questions, please file an issue on the [GitHub repository](https://github.com/thvroyal/eml-extractor/issues).
 
 ## Acknowledgments
 

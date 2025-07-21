@@ -11,7 +11,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 # Read version from the package
 def get_version():
-    version_file = os.path.join(here, 'eml_parser', '__init__.py')
+    version_file = os.path.join(here, 'eml_extractor', '__init__.py')
     with open(version_file, encoding='utf-8') as f:
         for line in f:
             if line.startswith('__version__'):
@@ -19,14 +19,14 @@ def get_version():
     return '1.0.0'
 
 setup(
-    name='eml-parser',
+    name='eml-extractor',
     version=get_version(),
     author='thvroyal',
     author_email='thvroyal@gmail.com',
-    description='A Python library for parsing .eml email files',
+    description='A Python library for extracting data from .eml email files',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/thvroyal/eml-parser',
+    url='https://github.com/thvroyal/eml-extractor',
     
     packages=find_packages(),
     
@@ -47,7 +47,7 @@ setup(
         'Operating System :: OS Independent',
     ],
     
-    keywords='eml email parser mime multipart rfc2822 email-parsing',
+    keywords='eml email extractor extraction mime multipart rfc2822 email-parsing',
     
     python_requires='>=3.7',
     
@@ -69,13 +69,13 @@ setup(
     },
     
     package_data={
-        'eml_parser': ['py.typed'],
+        'eml_extractor': ['py.typed'],
     },
     
     project_urls={
-        'Bug Reports': 'https://github.com/thvroyal/eml-parser/issues',
-        'Source': 'https://github.com/thvroyal/eml-parser',
-        'Documentation': 'https://github.com/thvroyal/eml-parser#readme',
+        'Bug Reports': 'https://github.com/thvroyal/eml-extractor/issues',
+        'Source': 'https://github.com/thvroyal/eml-extractor',
+        'Documentation': 'https://github.com/thvroyal/eml-extractor#readme',
     },
     
     license='MIT',

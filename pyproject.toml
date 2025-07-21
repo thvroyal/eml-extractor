@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "eml-parser"
+name = "eml-extractor"
 version = "1.0.0"
 authors = [
     {name = "thvroyal", email = "thvroyal@gmail.com"},
 ]
-description = "A Python library for parsing .eml email files"
+description = "A Python library for extracting data from .eml email files"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.7"
@@ -28,7 +28,7 @@ classifiers = [
     "Topic :: Text Processing :: Markup :: HTML",
     "Operating System :: OS Independent",
 ]
-keywords = ["eml", "email", "parser", "mime", "multipart", "rfc2822", "email-parsing"]
+keywords = ["eml", "email", "extractor", "extraction", "mime", "multipart", "rfc2822", "email-parsing"]
 
 dependencies = []
 
@@ -46,16 +46,16 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/thvroyal/eml-parser"
-Documentation = "https://github.com/thvroyal/eml-parser#readme"
-Repository = "https://github.com/thvroyal/eml-parser"
-"Bug Tracker" = "https://github.com/thvroyal/eml-parser/issues"
+Homepage = "https://github.com/thvroyal/eml-extractor"
+Documentation = "https://github.com/thvroyal/eml-extractor#readme"
+Repository = "https://github.com/thvroyal/eml-extractor"
+"Bug Tracker" = "https://github.com/thvroyal/eml-extractor/issues"
 
 [tool.setuptools]
-packages = ["eml_parser"]
+packages = ["eml_extractor"]
 
 [tool.setuptools.package-data]
-eml_parser = ["py.typed"]
+eml_extractor = ["py.typed"]
 
 [tool.black]
 line-length = 88

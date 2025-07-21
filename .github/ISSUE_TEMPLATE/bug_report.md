@@ -24,7 +24,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add a minimal code example that reproduces the issue:
 
 ```python
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 
 # Your code here
 ```
@@ -44,7 +44,7 @@ Paste the full error traceback here
 **Environment (please complete the following information):**
 - OS: [e.g. Windows 10, macOS 12.0, Ubuntu 20.04]
 - Python version: [e.g. 3.9.7]
-- EML Parser version: [e.g. 1.0.0]
+- EML Extractor version: [e.g. 1.0.0]
 
 **Additional context**
 Add any other context about the problem here. 

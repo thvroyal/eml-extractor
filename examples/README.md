@@ -1,6 +1,6 @@
-# EML Parser Examples
+# EML Extractor Examples
 
-This directory contains example scripts demonstrating various features of the EML Parser library.
+This directory contains example scripts demonstrating various features of the EML Extractor library.
 
 ## Available Examples
 
@@ -51,6 +51,6 @@ The directory also contains sample .eml files for testing:
 
 ## Running the Examples
 
-Make sure you have the EML Parser library installed or available in your Python path. If running from the source directory, the examples will automatically add the parent directory to the path.
+Make sure you have the EML Extractor library installed or available in your Python path. If running from the source directory, the examples will automatically add the parent directory to the path.
 
 All example scripts include help text when run without arguments or with invalid parameters. 

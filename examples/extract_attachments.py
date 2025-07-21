@@ -10,10 +10,10 @@ import os
 import sys
 from pathlib import Path
 
-# Add the parent directory to the path to import eml_parser
+# Add the parent directory to the path to import eml_extractor
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from eml_parser import EmlReader
+from eml_extractor import EmlReader
 
 
 def extract_attachments(eml_file_path, output_dir="extracted_files"):

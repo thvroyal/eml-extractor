@@ -3,7 +3,7 @@ include README.md
 include LICENSE
 
 # Include package data files
-include eml_parser/py.typed
+include eml_extractor/py.typed
 
 # Include examples
 recursive-include examples *.py *.eml
