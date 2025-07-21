@@ -58,6 +58,20 @@ class MultiPartParser:
                         self._headers[key].append(value)
                     else:
                         self._headers[key] = value
+                else:
+                    # Handle malformed headers - try to guess key/value
+                    # Look for common header patterns like "Subject Something"
+                    match = re.match(r'^(subject|from|to|cc|bcc|date|reply-to)\s+(.+)', header.strip(), re.IGNORECASE)
+                    if match:
+                        key = match.group(1).lower().strip()
+                        value = match.group(2).strip()
+                        
+                        if key in self._headers:
+                            if isinstance(self._headers[key], str):
+                                self._headers[key] = [self._headers[key]]
+                            self._headers[key].append(value)
+                        else:
+                            self._headers[key] = value
         
         # Parse body
         content_type = self.get_content_type()
@@ -520,7 +534,8 @@ class EmlReader:
         text_part = self._multipart_parser.get_part_by_content_type('text', 'plain')
         if text_part and not text_part.is_attachment:
             body = text_part.get_body()
-            return body if isinstance(body, str) else body.decode('utf-8', errors='ignore')
+            text = body if isinstance(body, str) else body.decode('utf-8', errors='ignore')
+            return text.strip() if text else None
         
         # Convert HTML to text if no plain text available
         html_part = self._multipart_parser.get_part_by_content_type('text', 'html')
@@ -533,6 +548,15 @@ class EmlReader:
                 # Simple HTML to text conversion
                 return self._html_to_text(html_content)
         
+        # Fallback: if no text/plain or text/html parts found, try to get any body content
+        main_body = self._multipart_parser.get_body()
+        if main_body:
+            if isinstance(main_body, bytes):
+                text = main_body.decode('utf-8', errors='ignore')
+            else:
+                text = str(main_body)
+            return text.strip() if text else None
+        
         return None
     
     def get_message_html(self) -> Optional[str]:
@@ -541,7 +565,8 @@ class EmlReader:
         html_part = self._multipart_parser.get_part_by_content_type('text', 'html')
         if html_part and not html_part.is_attachment:
             body = html_part.get_body()
-            return body if isinstance(body, str) else body.decode('utf-8', errors='ignore')
+            html = body if isinstance(body, str) else body.decode('utf-8', errors='ignore')
+            return html.strip() if html else None
         
         # Convert text to HTML if no HTML available
         text_part = self._multipart_parser.get_part_by_content_type('text', 'plain')
