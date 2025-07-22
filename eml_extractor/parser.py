@@ -286,10 +286,24 @@ class MultiPartParser:
         
         try:
             decoded = quopri.decodestring(raw.encode('utf-8'))
-            if charset and charset.lower() != 'utf-8':
+            if charset and charset.lower() not in ['utf-8', 'ascii']:
                 try:
-                    text = decoded.decode(charset)
-                    decoded = text.encode('utf-8')
+                    # For ISO-2022-JP, try various variants
+                    if 'iso-2022-jp' in charset.lower():
+                        for iso_charset in ['iso-2022-jp', 'iso-2022-jp-1', 'iso-2022-jp-2']:
+                            try:
+                                text = decoded.decode(iso_charset, errors='strict')
+                                decoded = text.encode('utf-8')
+                                break
+                            except (UnicodeDecodeError, LookupError):
+                                continue
+                        else:
+                            # If all ISO-2022-JP variants fail, use replace mode
+                            text = decoded.decode(charset, errors='replace')
+                            decoded = text.encode('utf-8')
+                    else:
+                        text = decoded.decode(charset, errors='replace')
+                        decoded = text.encode('utf-8')
                 except (UnicodeDecodeError, LookupError):
                     pass
             return decoded
@@ -368,29 +382,48 @@ class MultiPartParser:
         
         # If we still have bytes, we need to properly decode with the correct charset
         if isinstance(decoded, bytes):
-            try:
-                # For ISO-2022-JP and similar encodings, be more careful
-                if charset and 'iso-2022-jp' in charset.lower():
-                    # Try various ISO-2022-JP variants
-                    for iso_charset in ['iso-2022-jp', 'iso-2022-jp-1', 'iso-2022-jp-2']:
-                        try:
-                            self._body = decoded.decode(iso_charset, errors='strict')
-                            break
-                        except (UnicodeDecodeError, LookupError):
-                            continue
-                    else:
-                        # If all ISO-2022-JP variants fail, fall back to replace mode
-                        self._body = decoded.decode(charset, errors='replace')
+            # For quoted-printable and base64 with charset conversion, 
+            # _decode_content already converts to UTF-8, so decode as UTF-8
+            encoding_header = self.get_header('content-transfer-encoding')
+            if encoding_header and encoding_header.upper() in ['QUOTED-PRINTABLE', 'BASE64']:
+                if charset and charset.lower() not in ['utf-8', 'ascii']:
+                    # Content was already converted to UTF-8 in _decode_content
+                    try:
+                        self._body = decoded.decode('utf-8', errors='replace')
+                    except UnicodeDecodeError:
+                        # Last resort: decode with latin-1 (never fails)
+                        self._body = decoded.decode('latin-1', errors='replace')
                 else:
-                    # Try to decode with the specified charset
-                    self._body = decoded.decode(charset, errors='replace')
-            except (UnicodeDecodeError, LookupError):
-                # Fallback to UTF-8 if charset is not supported
+                    # Charset is already UTF-8 or ASCII, decode directly
+                    try:
+                        self._body = decoded.decode(charset or 'utf-8', errors='replace')
+                    except (UnicodeDecodeError, LookupError):
+                        self._body = decoded.decode('utf-8', errors='replace')
+            else:
+                # For 7BIT, 8BIT, BINARY encodings, decode with original charset
                 try:
-                    self._body = decoded.decode('utf-8', errors='replace')
-                except UnicodeDecodeError:
-                    # Last resort: decode with latin-1 (never fails)
-                    self._body = decoded.decode('latin-1', errors='replace')
+                    # For ISO-2022-JP and similar encodings, be more careful
+                    if charset and 'iso-2022-jp' in charset.lower():
+                        # Try various ISO-2022-JP variants
+                        for iso_charset in ['iso-2022-jp', 'iso-2022-jp-1', 'iso-2022-jp-2']:
+                            try:
+                                self._body = decoded.decode(iso_charset, errors='strict')
+                                break
+                            except (UnicodeDecodeError, LookupError):
+                                continue
+                        else:
+                            # If all ISO-2022-JP variants fail, fall back to replace mode
+                            self._body = decoded.decode(charset, errors='replace')
+                    else:
+                        # Try to decode with the specified charset
+                        self._body = decoded.decode(charset, errors='replace')
+                except (UnicodeDecodeError, LookupError):
+                    # Fallback to UTF-8 if charset is not supported
+                    try:
+                        self._body = decoded.decode('utf-8', errors='replace')
+                    except UnicodeDecodeError:
+                        # Last resort: decode with latin-1 (never fails)
+                        self._body = decoded.decode('latin-1', errors='replace')
         else:
             # Already a string
             self._body = decoded
