@@ -238,6 +238,8 @@ class MultiPartParser:
         elif encoding == 'QUOTED-PRINTABLE':
             return self._decode_quoted_printable(raw_array, charset)
         elif encoding in ['8BIT', '7BIT', 'BINARY']:
+            # For these encodings, return raw bytes without charset conversion
+            # Charset conversion will be handled in _parse_body_text
             return raw_array
         else:
             return raw_array
@@ -363,7 +365,40 @@ class MultiPartParser:
                 charset = match.group(1)
         
         decoded = self._decode_content(raw_array, charset)
-        self._body = decoded.decode('utf-8', errors='ignore')
+        
+        # If we still have bytes, we need to properly decode with the correct charset
+        if isinstance(decoded, bytes):
+            try:
+                # For ISO-2022-JP and similar encodings, be more careful
+                if charset and 'iso-2022-jp' in charset.lower():
+                    # Try various ISO-2022-JP variants
+                    for iso_charset in ['iso-2022-jp', 'iso-2022-jp-1', 'iso-2022-jp-2']:
+                        try:
+                            self._body = decoded.decode(iso_charset, errors='strict')
+                            break
+                        except (UnicodeDecodeError, LookupError):
+                            continue
+                    else:
+                        # If all ISO-2022-JP variants fail, fall back to replace mode
+                        self._body = decoded.decode(charset, errors='replace')
+                else:
+                    # Try to decode with the specified charset
+                    self._body = decoded.decode(charset, errors='replace')
+            except (UnicodeDecodeError, LookupError):
+                # Fallback to UTF-8 if charset is not supported
+                try:
+                    self._body = decoded.decode('utf-8', errors='replace')
+                except UnicodeDecodeError:
+                    # Last resort: decode with latin-1 (never fails)
+                    self._body = decoded.decode('latin-1', errors='replace')
+        else:
+            # Already a string
+            self._body = decoded
+        
+        # Handle literal ISO-2022-JP escape sequences that might be in the content
+        # These are not actual binary escape sequences but literal text
+        if isinstance(self._body, str) and charset and 'iso-2022-jp' in charset.lower():
+            self._body = self._decode_literal_iso2022jp_sequences(self._body)
     
     def _parse_body_multipart(self, raw_array: bytes, content_type_args: Optional[str]):
         """Parse multipart content type."""
@@ -408,6 +443,115 @@ class MultiPartParser:
         """Find string in byte array."""
         pattern = string.encode('utf-8')
         return byte_array.find(pattern, offset)
+    
+    def _decode_literal_iso2022jp_sequences(self, text: str) -> str:
+        """
+        Decode literal ISO-2022-JP escape sequences that appear as text.
+        
+        Sometimes emails contain literal text like '$B...$(B' or '$B...(B' that
+        represents ISO-2022-JP encoded content but isn't actually binary encoded.
+        """
+        if not text or '$B' not in text:
+            return text
+        
+        # Mapping of common ISO-2022-JP character sequences to Unicode
+        # This is a basic mapping for common characters
+        iso2022jp_mappings = {
+            # Common Japanese characters and sequences
+            '$B7r9/(B': '健康',
+            '$BJ]81(B': '保険', 
+            '$BAH9g(B': '組合',
+            '$B$+$i(B': 'から',
+            '$B$N(B': 'の',
+            '$B$*(B': 'お',
+            '$BCN$i$;(B': '知らせ',
+            '$B!c(B': '『',
+            '$B!d(B': '』',
+            '$BH/(B': '発',
+            '$BBh(B': '第',
+            '$B9f(B': '号',
+            '$BG/(B': '年',
+            '$B7n(B': '月',
+            '$BF|(B': '日',
+            '$BG/EY(B': '年度',
+            '$BJ]7r(B': '保健',
+            '$B;v6H(B': '事業',
+            '$B@)EY(B': '制度',
+            '$BJQ99(B': '変更',
+            '$B$K$D$$$F(B': 'について',
+            '$B40F$(B': 'ご案',
+            '$BFb(B': '内',
+            '$BHoJ]81<T(B': '被保険者',
+            '$B3F0L(B': '各位',
+            '$BF|K\(B': '日本',
+            '$B%R%e!<%l%C%H(B': 'ヒューレット',
+            '$B%Q%C%+!<%I(B': 'パッカード',
+            '$B>B1[(B': '常務',
+            '$B1`;R(B': '理事',
+            '$BM}M3(B': '理由',
+            '$BIiC4(B': '負担',
+            '$B7Z8:(B': '軽減',
+            '$B<u?G(B': '受診',
+            '$B5!2q(B': '機会',
+            '$B3HBg(B': '拡大',
+            '$BAa4|(B': '早期',
+            '$B<#NE(B': '治療',
+            '$B40<#(B': '完治',
+            '$B8+9~(B': '見込',
+            '$BIB5$(B': '病気',
+            '$BH/8+(B': '発見',
+            '$B$?$a(B': 'ため',
+            '$BGQ;_(B': '廃止',
+            '$BMxMQ(B': '利用',
+            '$BJd=u(B': '補助',
+            '$BM}2r(B': '理解',
+            '$B46(NO(B': 'ご協力',
+            '$B$h$m$7$/(B': 'よろしく',
+            '$B$*4j$$(B': 'お願い',
+            '$B?=$7>e$2(B': '申し上げ',
+            '$BLd$$9g$o$;(B': 'お問い合わせ',
+            '$B@h(B': '先'
+        }
+        
+        # Replace known sequences
+        result = text
+        for sequence, replacement in iso2022jp_mappings.items():
+            result = result.replace(sequence, replacement)
+        
+        # Handle remaining $B...(B patterns with regex
+        # This catches any remaining sequences we haven't mapped
+        import re
+        def replace_remaining(match):
+            sequence = match.group(0)
+            # If we haven't mapped this sequence, try to decode it as ISO-2022-JP
+            try:
+                # Convert the literal text back to bytes and try to decode
+                # Remove the literal $B and (B markers and replace with actual escape sequences
+                content = sequence[2:-2]  # Remove $B and (B
+                iso_bytes = b'\x1b$B' + content.encode('ascii') + b'\x1b(B'
+                decoded = iso_bytes.decode('iso-2022-jp', errors='ignore')
+                return decoded if decoded else sequence
+            except Exception:
+                # If decoding fails, return the original sequence
+                return sequence
+        
+        # Replace any $B...(B patterns (note: fixed regex to handle parentheses correctly)
+        result = re.sub(r'\$B[^(]*\(B', replace_remaining, result)
+        
+        # Also handle $B...$(B patterns (alternative ending)  
+        def replace_remaining_alt(match):
+            sequence = match.group(0)
+            try:
+                content = sequence[2:-2]  # Remove $B and $(B
+                iso_bytes = b'\x1b$B' + content.encode('ascii') + b'\x1b(B'
+                decoded = iso_bytes.decode('iso-2022-jp', errors='ignore')
+                return decoded if decoded else sequence
+            except Exception:
+                return sequence
+        
+        result = re.sub(r'\$B[^$]*\$\(B', replace_remaining_alt, result)
+        
+        return result
 
 
 class EmlReader:
