@@ -92,12 +92,31 @@ reader = EmlReader(email_bytes)
 ```python
 # Basic headers with automatic decoding
 subject = reader.get_subject()
-sender = reader.get_from()
-recipients = reader.get_to()
+sender = reader.get_from()  # "John Doe <john@example.com>"
+recipients = reader.get_to()  # "Jane Smith <jane@example.com>, Bob Wilson <bob@example.com>"
 cc_recipients = reader.get_cc()
 bcc_recipients = reader.get_bcc()
 reply_to = reader.get_reply_to()
 date = reader.get_date()  # Returns datetime object
+
+# NEW: Parse email addresses separately
+sender_email = reader.get_from_email()  # "john@example.com"
+sender_name = reader.get_from_name()    # "John Doe"
+
+# Get both name and email together
+sender_name, sender_email = reader.get_from_parsed()  # ("John Doe", "john@example.com")
+
+# Handle multiple recipients
+recipient_emails = reader.get_to_emails()  # ["jane@example.com", "bob@example.com"]
+recipient_names = reader.get_to_names()    # ["Jane Smith", "Bob Wilson"]
+
+# Get all recipients with names and emails
+for name, email in reader.get_to_parsed():
+    print(f"To: {name} <{email}>")
+
+# Same methods available for CC and BCC
+cc_emails = reader.get_cc_emails()
+bcc_emails = reader.get_bcc_emails()
 
 # Check if email was sent or received
 email_type = reader.get_type()  # 'sent' or 'received'
@@ -212,14 +231,40 @@ Creates a new EML reader instance.
 ##### Header Methods
 
 - `get_subject() -> Optional[str]`: Get email subject with automatic decoding
-- `get_from() -> Optional[str]`: Get From header
-- `get_to() -> Optional[str]`: Get To header  
-- `get_cc() -> Optional[str]`: Get CC header
-- `get_bcc() -> Optional[str]`: Get BCC header
-- `get_reply_to() -> Optional[str]`: Get Reply-To header
+- `get_from() -> Optional[str]`: Get From header (raw format with display name and email)
+- `get_to() -> Optional[str]`: Get To header (raw format with display names and emails)
+- `get_cc() -> Optional[str]`: Get CC header (raw format with display names and emails)
+- `get_bcc() -> Optional[str]`: Get BCC header (raw format with display names and emails)
+- `get_reply_to() -> Optional[str]`: Get Reply-To header (raw format)
 - `get_date() -> Optional[datetime]`: Get email date as datetime object
 - `get_type() -> str`: Returns 'sent' or 'received'
 - `get_header(key: str, decode: bool = False, remove_line_breaks: bool = False) -> Union[str, List[str], None]`: Get any header value
+
+##### Email Address Parsing Methods (NEW)
+
+**From Header:**
+- `get_from_email() -> Optional[str]`: Get only the email address from From header
+- `get_from_name() -> Optional[str]`: Get only the display name from From header  
+- `get_from_parsed() -> Tuple[Optional[str], Optional[str]]`: Get both display name and email address from From header
+
+**To Header:**
+- `get_to_emails() -> List[str]`: Get only the email addresses from To header
+- `get_to_names() -> List[str]`: Get only the display names from To header
+- `get_to_parsed() -> List[Tuple[Optional[str], Optional[str]]]`: Get both display names and email addresses from To header
+
+**CC Header:**
+- `get_cc_emails() -> List[str]`: Get only the email addresses from CC header
+- `get_cc_names() -> List[str]`: Get only the display names from CC header
+- `get_cc_parsed() -> List[Tuple[Optional[str], Optional[str]]]`: Get both display names and email addresses from CC header
+
+**BCC Header:**
+- `get_bcc_emails() -> List[str]`: Get only the email addresses from BCC header
+- `get_bcc_names() -> List[str]`: Get only the display names from BCC header
+- `get_bcc_parsed() -> List[Tuple[Optional[str], Optional[str]]]`: Get both display names and email addresses from BCC header
+
+**Reply-To Header:**
+- `get_reply_to_email() -> Optional[str]`: Get only the email address from Reply-To header
+- `get_reply_to_parsed() -> Tuple[Optional[str], Optional[str]]`: Get both display name and email address from Reply-To header
 
 ##### Content Methods
 

@@ -41,18 +41,42 @@ def parse_email_file(eml_file_path):
         print(f"From:       {reader.get_from() or 'Unknown'}")
         print(f"To:         {reader.get_to() or 'Unknown'}")
         
+        # Enhanced address parsing (NEW)
+        from_email = reader.get_from_email()
+        from_name = reader.get_from_name() 
+        to_emails = reader.get_to_emails()
+        to_names = reader.get_to_names()
+        
+        if from_email:
+            print(f"From Email: {from_email}")
+        if from_name:
+            print(f"From Name:  {from_name}")
+        if to_emails:
+            print(f"To Emails:  {', '.join(to_emails)}")
+        if to_names:
+            print(f"To Names:   {', '.join(to_names)}")
+        
         # Optional headers
         cc = reader.get_cc()
         if cc:
             print(f"CC:         {cc}")
+            cc_emails = reader.get_cc_emails()
+            if cc_emails:
+                print(f"CC Emails:  {', '.join(cc_emails)}")
         
         bcc = reader.get_bcc()
         if bcc:
             print(f"BCC:        {bcc}")
+            bcc_emails = reader.get_bcc_emails()
+            if bcc_emails:
+                print(f"BCC Emails: {', '.join(bcc_emails)}")
         
         reply_to = reader.get_reply_to()
         if reply_to:
             print(f"Reply-To:   {reply_to}")
+            reply_to_email = reader.get_reply_to_email()
+            if reply_to_email:
+                print(f"Reply-To Email: {reply_to_email}")
         
         # Date
         date = reader.get_date()

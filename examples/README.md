@@ -11,13 +11,42 @@ Demonstrates basic email parsing functionality including:
 - Extracting text and HTML content
 - Detecting attachments and inline images
 - Displaying email metadata
+- **NEW:** Enhanced email address parsing (display names and email addresses separately)
 
 **Usage:**
 ```bash
 python basic_usage.py email.eml
 ```
 
-### 2. extract_attachments.py
+### 2. email_address_parsing.py
+
+**NEW:** Comprehensive demonstration of the email address parsing capabilities:
+- Extract just email addresses from headers (From, To, CC, BCC, Reply-To)
+- Extract just display names from headers  
+- Parse both display names and email addresses together
+- Handle multiple recipients in To/CC/BCC headers
+- Compare old (raw header) vs new (parsed) methods
+
+**Usage:**
+```bash
+python email_address_parsing.py email.eml
+```
+
+**Example Output:**
+```
+🔹 FROM HEADER:
+Raw From:        John Doe <john@example.com>
+From Email:      john@example.com
+From Name:       John Doe
+Parsed:          Name='John Doe', Email='john@example.com'
+
+🔹 TO HEADER:
+Raw To:          Jane Smith <jane@example.com>, Bob Wilson <bob@example.com>
+To Emails:       ['jane@example.com', 'bob@example.com']
+To Names:        ['Jane Smith', 'Bob Wilson']
+```
+
+### 3. extract_attachments.py
 
 Shows how to extract and save all attachments and inline images from an email:
 - Saves regular attachments to the output directory

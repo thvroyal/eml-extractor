@@ -13,7 +13,7 @@ import base64
 import quopri
 import email.utils
 from datetime import datetime
-from typing import Union, List, Dict, Optional, Any
+from typing import Union, List, Dict, Optional, Any, Tuple
 from html import unescape
 import html.parser
 import mimetypes
@@ -599,6 +599,64 @@ class EmlReader:
         """
         self._multipart_parser = MultiPartParser(array_buffer)
     
+    def _parse_email_address(self, address_string: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Parse an email address string to extract display name and email address.
+        
+        Args:
+            address_string: Email address string in format "Display Name <email@domain.com>" or "email@domain.com"
+            
+        Returns:
+            Tuple of (display_name, email_address)
+        """
+        if not address_string:
+            return None, None
+        
+        # Use email.utils.parseaddr for robust parsing
+        display_name, email_address = email.utils.parseaddr(address_string)
+        
+        # Clean up display name - remove quotes if present
+        if display_name:
+            display_name = display_name.strip().strip('"').strip("'")
+            if not display_name:
+                display_name = None
+        
+        # Validate email address
+        if email_address and '@' not in email_address:
+            email_address = None
+            
+        return display_name, email_address
+    
+    def _parse_multiple_addresses(self, addresses_string: str) -> List[Tuple[Optional[str], Optional[str]]]:
+        """
+        Parse multiple email addresses separated by commas.
+        
+        Args:
+            addresses_string: String containing multiple email addresses
+            
+        Returns:
+            List of (display_name, email_address) tuples
+        """
+        if not addresses_string:
+            return []
+        
+        # Use email.utils.getaddresses for robust parsing of multiple addresses
+        parsed_addresses = email.utils.getaddresses([addresses_string])
+        
+        result = []
+        for display_name, email_address in parsed_addresses:
+            # Clean up display name
+            if display_name:
+                display_name = display_name.strip().strip('"').strip("'")
+                if not display_name:
+                    display_name = None
+            
+            # Validate email address
+            if email_address and '@' in email_address:
+                result.append((display_name, email_address))
+        
+        return result
+    
     def get_date(self) -> Optional[datetime]:
         """Get the email date as a datetime object."""
         date_str = self._multipart_parser.get_header('date')
@@ -618,24 +676,131 @@ class EmlReader:
         return self._multipart_parser.get_header('subject', decode=True, remove_line_breaks=True)
     
     def get_from(self) -> Optional[str]:
-        """Get the From header."""
+        """Get the From header (raw format with display name and email)."""
         return self._multipart_parser.get_header('from', decode=True, remove_line_breaks=True)
     
-    def get_bcc(self) -> Optional[str]:
-        """Get the BCC header."""
-        return self._multipart_parser.get_header('bcc', decode=True, remove_line_breaks=True)
+    def get_from_email(self) -> Optional[str]:
+        """Get only the email address from the From header."""
+        from_header = self.get_from()
+        if from_header:
+            _, email_address = self._parse_email_address(from_header)
+            return email_address
+        return None
     
-    def get_cc(self) -> Optional[str]:
-        """Get the CC header."""
-        return self._multipart_parser.get_header('cc', decode=True, remove_line_breaks=True)
+    def get_from_name(self) -> Optional[str]:
+        """Get only the display name from the From header."""
+        from_header = self.get_from()
+        if from_header:
+            display_name, _ = self._parse_email_address(from_header)
+            return display_name
+        return None
+    
+    def get_from_parsed(self) -> Tuple[Optional[str], Optional[str]]:
+        """Get both display name and email address from the From header."""
+        from_header = self.get_from()
+        if from_header:
+            return self._parse_email_address(from_header)
+        return None, None
     
     def get_to(self) -> Optional[str]:
-        """Get the To header."""
+        """Get the To header (raw format with display names and emails)."""
         return self._multipart_parser.get_header('to', decode=True, remove_line_breaks=True)
     
+    def get_to_emails(self) -> List[str]:
+        """Get only the email addresses from the To header."""
+        to_header = self.get_to()
+        if to_header:
+            parsed_addresses = self._parse_multiple_addresses(to_header)
+            return [email for _, email in parsed_addresses if email]
+        return []
+    
+    def get_to_names(self) -> List[str]:
+        """Get only the display names from the To header."""
+        to_header = self.get_to()
+        if to_header:
+            parsed_addresses = self._parse_multiple_addresses(to_header)
+            return [name for name, _ in parsed_addresses if name]
+        return []
+    
+    def get_to_parsed(self) -> List[Tuple[Optional[str], Optional[str]]]:
+        """Get both display names and email addresses from the To header."""
+        to_header = self.get_to()
+        if to_header:
+            return self._parse_multiple_addresses(to_header)
+        return []
+    
+    def get_cc(self) -> Optional[str]:
+        """Get the CC header (raw format with display names and emails)."""
+        return self._multipart_parser.get_header('cc', decode=True, remove_line_breaks=True)
+    
+    def get_cc_emails(self) -> List[str]:
+        """Get only the email addresses from the CC header."""
+        cc_header = self.get_cc()
+        if cc_header:
+            parsed_addresses = self._parse_multiple_addresses(cc_header)
+            return [email for _, email in parsed_addresses if email]
+        return []
+    
+    def get_cc_names(self) -> List[str]:
+        """Get only the display names from the CC header."""
+        cc_header = self.get_cc()
+        if cc_header:
+            parsed_addresses = self._parse_multiple_addresses(cc_header)
+            return [name for name, _ in parsed_addresses if name]
+        return []
+    
+    def get_cc_parsed(self) -> List[Tuple[Optional[str], Optional[str]]]:
+        """Get both display names and email addresses from the CC header."""
+        cc_header = self.get_cc()
+        if cc_header:
+            return self._parse_multiple_addresses(cc_header)
+        return []
+    
+    def get_bcc(self) -> Optional[str]:
+        """Get the BCC header (raw format with display names and emails)."""
+        return self._multipart_parser.get_header('bcc', decode=True, remove_line_breaks=True)
+    
+    def get_bcc_emails(self) -> List[str]:
+        """Get only the email addresses from the BCC header."""
+        bcc_header = self.get_bcc()
+        if bcc_header:
+            parsed_addresses = self._parse_multiple_addresses(bcc_header)
+            return [email for _, email in parsed_addresses if email]
+        return []
+    
+    def get_bcc_names(self) -> List[str]:
+        """Get only the display names from the BCC header."""
+        bcc_header = self.get_bcc()
+        if bcc_header:
+            parsed_addresses = self._parse_multiple_addresses(bcc_header)
+            return [name for name, _ in parsed_addresses if name]
+        return []
+    
+    def get_bcc_parsed(self) -> List[Tuple[Optional[str], Optional[str]]]:
+        """Get both display names and email addresses from the BCC header."""
+        bcc_header = self.get_bcc()
+        if bcc_header:
+            return self._parse_multiple_addresses(bcc_header)
+        return []
+    
     def get_reply_to(self) -> Optional[str]:
-        """Get the Reply-To header."""
+        """Get the Reply-To header (raw format)."""
         return self._multipart_parser.get_header('reply-to', decode=True, remove_line_breaks=True)
+    
+    def get_reply_to_email(self) -> Optional[str]:
+        """Get only the email address from the Reply-To header."""
+        reply_to_header = self.get_reply_to()
+        if reply_to_header:
+            _, email_address = self._parse_email_address(reply_to_header)
+            return email_address
+        return None
+    
+    def get_reply_to_parsed(self) -> Tuple[Optional[str], Optional[str]]:
+        """Get both display name and email address from the Reply-To header."""
+        reply_to_header = self.get_reply_to()
+        if reply_to_header:
+            return self._parse_email_address(reply_to_header)
+        return None, None
     
     def get_type(self) -> str:
         """Determine if email was received or sent."""
